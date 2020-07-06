@@ -4,6 +4,24 @@
 
 ## Project Set Up and Installation
 *TODO:* Explain the setup procedures to run your project. For instance, this can include your project directory structure, the models you need to download and where to place them etc. Also include details about how to install the dependencies your project requires.
+### Install the required Models from OpenVino Model Zoo
+1. Download and install de OpenVINO SDK from:
+[OpenVINO SFK](https://software.intel.com/content/www/us/en/develop/tools/openvino-toolkit.html)
+
+2. Setup the environment variable OV with the base path of your OpenVINO installation. Example
+        
+        export OV=/Users/marcos/intel/openvino
+
+3. Source the OpenVINO environment script:
+
+        source $OV/bin/setupvars.sh
+
+4. Download the four necessary models from OpenVINO Model Zoo
+
+        $OV/deployment_tools/open_model_zoo/tools/downloader/downloader.py --name face-detection-adas-binary-0001
+        $OV/deployment_tools/open_model_zoo/tools/downloader/downloader.py --name head-pose-estimation-adas-0001 --precisions FP32
+        $OV/deployment_tools/open_model_zoo/tools/downloader/downloader.py --name landmarks-regression-retail-0009 --precisions FP32
+        $OV/deployment_tools/open_model_zoo/tools/downloader/downloader.py --name gaze-estimation-adas-0002 --precisions FP32
 
 ## Demo
 *TODO:* Explain how to run a basic demo of your model.
