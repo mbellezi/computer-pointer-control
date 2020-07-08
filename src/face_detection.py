@@ -1,4 +1,5 @@
 import os
+import cv2
 import logging as log
 from openvino.inference_engine import IENetwork, IECore
 
@@ -8,18 +9,19 @@ This has been provided just to give you an idea of how to structure your model c
 '''
 
 
-class Model_Facial_Landmark_Detection:
+class Model_Face_Detection:
     '''
     Class for the Face Detection Model.
     '''
 
-    def __init__(self, model_name, device='CPU', extensions=None):
+    def __init__(self, model_name, conf=0.5, device='CPU', extensions=None):
         '''
         TODO: Use this to set your instance variables.
         '''
         self.model_name = model_name
         self.device = device
         self.extensions = extensions
+        self.confidence = conf
         self.ie = None
         self.network = None
         self.exec_network = None
@@ -110,11 +112,20 @@ class Model_Facial_Landmark_Detection:
         Before feeding the data into the model for inference,
         you might have to preprocess it. This function is where you can do that.
         '''
-        raise NotImplementedError
+        frame_inference = cv2.resize(image, (self.model_width, self.model_height))
+
+        # Transform the image from the original size to the (1, 3, 320, 544) input shape
+        frame_inference = frame_inference.transpose((2, 0, 1))
+        frame_inference = frame_inference.reshape(1, *frame_inference.shape)
+        return frame_inference
 
     def preprocess_output(self, outputs):
         '''
         Before feeding the output of this model to the next model,
         you might have to preprocess the output. This function is where you can do that.
         '''
-        raise NotImplementedError
+        # Return only the first face
+        if outputs[0][0][0] is not None and outputs[0][0][0][2] >= self.confidence:
+            return outputs[0][0][0]
+        else:
+            return None
