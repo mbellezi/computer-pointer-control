@@ -1,4 +1,4 @@
-import os
+import cv2
 import logging as log
 from openvino.inference_engine import IENetwork, IECore
 
@@ -92,7 +92,7 @@ class Model_Head_Pose_estimation:
         # Start asynchronous inference for specified request
         self.exec_network.start_async(request_id=0, inputs={self.input_name: frame_inference})
         if self.exec_network.requests[0].wait(-1) == 0:
-            outputs = self.preprocess_output(self.exec_network.requests[0].outputs[self.output_name])
+            outputs = self.preprocess_output(self.exec_network.requests[0].outputs)
         return outputs
 
     def check_model(self):
@@ -110,11 +110,17 @@ class Model_Head_Pose_estimation:
         Before feeding the data into the model for inference,
         you might have to preprocess it. This function is where you can do that.
         '''
-        raise NotImplementedError
+        frame_inference = cv2.resize(image, (self.model_width, self.model_height))
+
+        # Transform the image from the original size to the (1, 3, 320, 544) input shape
+        frame_inference = frame_inference.transpose((2, 0, 1))
+        frame_inference = frame_inference.reshape(1, *frame_inference.shape)
+        return frame_inference
 
     def preprocess_output(self, outputs):
         '''
         Before feeding the output of this model to the next model,
         you might have to preprocess the output. This function is where you can do that.
         '''
-        raise NotImplementedError
+        yaw, pitch, roll = outputs['angle_y_fc'][0][0], outputs['angle_p_fc'][0][0], outputs['angle_r_fc'][0][0]
+        return yaw, pitch, roll

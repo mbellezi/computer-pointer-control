@@ -1,4 +1,3 @@
-import os
 import cv2
 import logging as log
 from openvino.inference_engine import IENetwork, IECore

@@ -3,7 +3,6 @@
 *TODO:* Write a short introduction to your project
 
 ## Project Set Up and Installation
-*TODO:* Explain the setup procedures to run your project. For instance, this can include your project directory structure, the models you need to download and where to place them etc. Also include details about how to install the dependencies your project requires.
 ### Install the required Models from OpenVino Model Zoo
 1. Download and install de OpenVINO SDK from:
 [OpenVINO SFK](https://software.intel.com/content/www/us/en/develop/tools/openvino-toolkit.html)
@@ -18,28 +17,75 @@
 
 4. Download the four necessary models from OpenVINO Model Zoo
 
-        $OV/deployment_tools/open_model_zoo/tools/downloader/downloader.py --name face-detection-adas-binary-0001
-        $OV/deployment_tools/open_model_zoo/tools/downloader/downloader.py --name head-pose-estimation-adas-0001 --precisions FP32
-        $OV/deployment_tools/open_model_zoo/tools/downloader/downloader.py --name landmarks-regression-retail-0009 --precisions FP32
-        $OV/deployment_tools/open_model_zoo/tools/downloader/downloader.py --name gaze-estimation-adas-0002 --precisions FP32
+        $OV/deployment_tools/open_model_zoo/tools/downloader/downloader.py --name face-detection-adas-binary-0001 -o models
+        $OV/deployment_tools/open_model_zoo/tools/downloader/downloader.py --name head-pose-estimation-adas-0001 -o models
+        $OV/deployment_tools/open_model_zoo/tools/downloader/downloader.py --name landmarks-regression-retail-0009 -o models
+        $OV/deployment_tools/open_model_zoo/tools/downloader/downloader.py --name gaze-estimation-adas-0002 -o models
+        
+5. Install the environment and libraries
+
+        source env/bin/activate
+        pip install -r requirements.txt
 
 ## Demo
-*TODO:* Explain how to run a basic demo of your model.
+After install the models, cd to the project main directory.
+You can run the demo with the commands:
+        
+        source env/bin/activate
+        python3 src/main.py -t video -i bin/demo.mp4 -p
 
 ## Documentation
-*TODO:* Include any documentation that users might need to better understand your project code. For instance, this is a good place to explain the command line arguments that your project supports.
+The demo can use this command line options:
+```
+usage: main.py [-h] -t INPUT_TYPE -i INPUT [-o OUT] [-p] [--notmove]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -t INPUT_TYPE, --input-type INPUT_TYPE
+                        Type of input (video or cam)
+  -i INPUT, --input INPUT
+                        Input file
+  -o OUT, --out OUT     Output file with the processed content
+  -p, --preview         Should preview face and eyes
+  --notmove             Should not move mouse
+  -m MODEL, --model MODEL
+                        Model precision to use. One of FP32, FP16 or FP16-INT8
+
+```
+
+You can use the `--type` cam to use your camera feed instead of the video file.
+
+The `--preview` option can be used to view the extracts od the face and eyes.
+
+The `--notmove` can be used to disable the mouse movement to get a better benchmark.
+
+The `--model` controls the precision of the models used. One of FP32, FP16 or FP16-INT8
+
 
 ## Benchmarks
-*TODO:* Include the benchmark results of running your model on multiple hardwares and multiple model precisions. Your benchmarks can include: model loading time, input/output processing time, model inference time etc.
+
+This tests were made on a MacBook Pro with a i9 processor. As the OpenVINO on MacOS does not allow use of the GPU,
+ the tests were made only using the CPU. The models were test for the FP32, FP16 and FP16-INT8 precisions, except
+ the Face detection tha was only available using FP32-INT1.
+
+|  Model      | Load Time (ms) | Average inference time (ms) |
+| ----------- | ----------- | ----------- |
+| Face detection - FP32     | 5134.97       | 8.63ms       |
+| Facial landmark detection - FP32  | 302.16        | 0.51ms       |
+| Head Pose estimation - FP32  | 617.12        |  1.04ms       |
+| Gaze estimation - FP32  |  748.72        |  1.26ms       |
+| Facial landmark detection - FP16  | 296.52        |  0.50ms       |
+| Head Pose estimation - FP16  | 620.61        |  1.04ms       |
+| Gaze estimation - FP16  |  750.20        |  1.26ms       |
+| Facial landmark detection - FP16-INT8  | 297.25        |  0.50ms       |
+| Head Pose estimation - FP16-INT8  | 497.46        |   0.84ms       |
+| Gaze estimation - FP16-INT8  |  601.19        |  1.01ms       |
 
 ## Results
-*TODO:* Discuss the benchmark results and explain why you are getting the results you are getting. For instance, explain why there is difference in inference time for FP32, FP16 and INT8 models.
 
-## Stand Out Suggestions
-This is where you can provide information about the stand out suggestions that you have attempted.
+As can be seen from the results, there is a slight difference between the FP32 and FP16 on CPU. 
+The major differences are seen when using the FP16-INT8. The models Head pose estimation and Gaze estimation
+have the greater increase in performance when using the FP16-INT8.
 
-### Async Inference
-If you have used Async Inference in your code, benchmark the results and explain its effects on power and performance of your project.
-
-### Edge Cases
-There will be certain situations that will break your inference flow. For instance, lighting changes or multiple people in the frame. Explain some of the edge cases you encountered in your project and how you solved them to make your project more robust.
+The total inference time for the FP32 is 11.44 ms with 87.41 fps. This is a very
+interesting performance with a near real time feeling.

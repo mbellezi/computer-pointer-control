@@ -1,4 +1,4 @@
-import os
+import cv2
 import logging as log
 from openvino.inference_engine import IENetwork, IECore
 
@@ -28,8 +28,8 @@ class Model_Gaze_Estimation:
         self.input_shape = None
         self.output_name = None
         self.output_shape = None
-        self.model_width = None
-        self.model_height = None
+        self.model_width = 60
+        self.model_height = 60
 
     def load_model(self):
         '''
@@ -62,10 +62,6 @@ class Model_Gaze_Estimation:
         self.output_name = next(iter(self.exec_network.outputs))
         self.input_shape = self.exec_network.inputs[self.input_name].shape
         self.output_shape = self.exec_network.outputs[self.output_name].shape
-
-        log.info(f"Input shape: {self.input_shape}")
-        log.info(f"Output shape: {self.output_shape}")
-
         return self.exec_network
 
     def get_input_shape(self):
@@ -80,17 +76,17 @@ class Model_Gaze_Estimation:
         '''
         return self.output_shape
 
-    def predict(self, image):
+    def predict(self, left_eye, right_eye, yaw, pitch, roll):
         '''
         This method is meant for running predictions on the input image.
         '''
         outputs = []
-        frame_inference = self.preprocess_input(image)
+        inputs = self.preprocess_input(left_eye, right_eye, yaw, pitch, roll)
 
         # Start asynchronous inference for specified request
-        self.exec_network.start_async(request_id=0, inputs={self.input_name: frame_inference})
+        self.exec_network.start_async(request_id=0, inputs=inputs)
         if self.exec_network.requests[0].wait(-1) == 0:
-            outputs = self.preprocess_output(self.exec_network.requests[0].outputs[self.output_name])
+            outputs = self.preprocess_output(self.exec_network.requests[0].outputs)
         return outputs
 
     def check_model(self):
@@ -103,16 +99,24 @@ class Model_Gaze_Estimation:
             log.error("Check whether extensions are available to add to IECore.")
             exit(1)
 
-    def preprocess_input(self, image):
+    def preprocess_input(self, left_eye, right_eye, yaw, pitch, roll):
         '''
         Before feeding the data into the model for inference,
         you might have to preprocess it. This function is where you can do that.
         '''
-        raise NotImplementedError
+        encoded_left_eye = cv2.resize(left_eye, (self.model_width, self.model_height))
+        encoded_left_eye = encoded_left_eye.transpose((2, 0, 1))
+        encoded_left_eye = encoded_left_eye.reshape(1, *encoded_left_eye.shape)
+
+        encoded_right_eye = cv2.resize(right_eye, (self.model_width, self.model_height))
+        encoded_right_eye = encoded_right_eye.transpose((2, 0, 1))
+        encoded_right_eye = encoded_right_eye.reshape(1, *encoded_right_eye.shape)
+        return {"left_eye_image": encoded_left_eye, "right_eye_image": encoded_right_eye,
+                "head_pose_angles": [yaw, pitch, roll]}
 
     def preprocess_output(self, outputs):
         '''
         Before feeding the output of this model to the next model,
         you might have to preprocess the output. This function is where you can do that.
         '''
-        raise NotImplementedError
+        return outputs['gaze_vector'][0]
