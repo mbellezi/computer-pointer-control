@@ -28,8 +28,6 @@ class Model_Head_Pose_estimation:
         self.input_shape = None
         self.output_name = None
         self.output_shape = None
-        self.model_width = None
-        self.model_height = None
 
     def load_model(self):
         '''
@@ -86,14 +84,9 @@ class Model_Head_Pose_estimation:
         '''
         This method is meant for running predictions on the input image.
         '''
-        outputs = []
         frame_inference = self.preprocess_input(image)
-
-        # Start asynchronous inference for specified request
-        self.exec_network.start_async(request_id=0, inputs={self.input_name: frame_inference})
-        if self.exec_network.requests[0].wait(-1) == 0:
-            outputs = self.preprocess_output(self.exec_network.requests[0].outputs)
-        return outputs
+        outputs = self.exec_network.infer(inputs={self.input_name: frame_inference})
+        return self.preprocess_output(outputs)
 
     def check_model(self):
         ### Check for any unsupported layers, and let the user

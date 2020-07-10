@@ -1,5 +1,3 @@
 .idea/
 /models/intel/
-env/include
-env/lib
-env/share
+env/

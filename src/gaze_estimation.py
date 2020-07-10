@@ -80,14 +80,9 @@ class Model_Gaze_Estimation:
         '''
         This method is meant for running predictions on the input image.
         '''
-        outputs = []
         inputs = self.preprocess_input(left_eye, right_eye, yaw, pitch, roll)
-
-        # Start asynchronous inference for specified request
-        self.exec_network.start_async(request_id=0, inputs=inputs)
-        if self.exec_network.requests[0].wait(-1) == 0:
-            outputs = self.preprocess_output(self.exec_network.requests[0].outputs)
-        return outputs
+        outputs = self.exec_network.infer(inputs=inputs)
+        return self.preprocess_output(outputs)
 
     def check_model(self):
         ### Check for any unsupported layers, and let the user

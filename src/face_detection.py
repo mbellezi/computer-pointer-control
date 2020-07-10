@@ -31,6 +31,11 @@ class Model_Face_Detection:
         self.output_shape = None
         self.model_width = None
         self.model_height = None
+        self.width = None
+        self.height = None
+        self.model_width = None
+        self.model_height = None
+        self.frame = None
 
     def load_model(self):
         '''
@@ -87,14 +92,12 @@ class Model_Face_Detection:
         '''
         This method is meant for running predictions on the input image.
         '''
-        outputs = []
+        self.frame = image
+        self.height = image.shape[0]
+        self.width = image.shape[1]
         frame_inference = self.preprocess_input(image)
-
-        # Start asynchronous inference for specified request
-        self.exec_network.start_async(request_id=0, inputs={self.input_name: frame_inference})
-        if self.exec_network.requests[0].wait(-1) == 0:
-            outputs = self.preprocess_output(self.exec_network.requests[0].outputs[self.output_name])
-        return outputs
+        outputs = self.exec_network.infer(inputs={self.input_name: frame_inference})
+        return self.preprocess_output(outputs[self.output_name])
 
     def check_model(self):
         ### Check for any unsupported layers, and let the user
@@ -118,6 +121,17 @@ class Model_Face_Detection:
         frame_inference = frame_inference.reshape(1, *frame_inference.shape)
         return frame_inference
 
+    def extract_face(self, box):
+        margin_top = 0
+        margin = 0
+        width = self.width
+        height = self.height
+        x_min = int(max(box[3] - box[3] * margin, 0) * width)
+        y_min = int(max(box[4] - box[4] * margin_top, 0) * height)
+        x_max = int(min(box[5] + box[5] * margin, 1) * width)
+        y_max = int(min(box[6] + box[6] * margin, 1) * height)
+        return self.frame[y_min:y_max, x_min:x_max]
+
     def preprocess_output(self, outputs):
         '''
         Before feeding the output of this model to the next model,
@@ -125,6 +139,6 @@ class Model_Face_Detection:
         '''
         # Return only the first face
         if outputs[0][0][0] is not None and outputs[0][0][0][2] >= self.confidence:
-            return outputs[0][0][0]
+            return self.extract_face(outputs[0][0][0])
         else:
             return None

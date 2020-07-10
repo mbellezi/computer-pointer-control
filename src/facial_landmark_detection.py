@@ -30,6 +30,9 @@ class Model_Facial_Landmark_Detection:
         self.output_shape = None
         self.model_width = None
         self.model_height = None
+        self.frame = None
+        self.width = None
+        self.height = None
 
     def load_model(self):
         '''
@@ -86,14 +89,12 @@ class Model_Facial_Landmark_Detection:
         '''
         This method is meant for running predictions on the input image.
         '''
-        outputs = []
+        self.frame = image
+        self.height = image.shape[0]
+        self.width = image.shape[1]
         frame_inference = self.preprocess_input(image)
-
-        # Start asynchronous inference for specified request
-        self.exec_network.start_async(request_id=0, inputs={self.input_name: frame_inference})
-        if self.exec_network.requests[0].wait(-1) == 0:
-            outputs = self.preprocess_output(self.exec_network.requests[0].outputs[self.output_name])
-        return outputs
+        outputs = self.exec_network.infer(inputs={self.input_name: frame_inference})
+        return self.preprocess_output(outputs[self.output_name])
 
     def check_model(self):
         ### Check for any unsupported layers, and let the user
@@ -117,9 +118,24 @@ class Model_Facial_Landmark_Detection:
         frame_inference = frame_inference.reshape(1, *frame_inference.shape)
         return frame_inference
 
+    def extract_eye(self, frame, coords, width, height, name, margin=0.12):
+        x, y = coords
+        x_min = int(max(x - width * margin, 0))
+        y_min = int(max(y - width * margin, 0))
+        x_max = int(min(x + width * margin, height - 1))
+        y_max = int(min(y + width * margin, height - 1))
+        eye_frame = frame[y_min:y_max, x_min:x_max]
+        return eye_frame
+
     def preprocess_output(self, outputs):
         '''
         Before feeding the output of this model to the next model,
         you might have to preprocess the output. This function is where you can do that.
         '''
-        return (outputs[0][0][0][0], outputs[0][1][0][0]), (outputs[0][2][0][0], outputs[0][3][0][0])
+        lef_eye_x = int(outputs[0][0][0][0] * self.width)
+        lef_eye_y = int(outputs[0][1][0][0] * self.height)
+        right_eye_x = int(outputs[0][2][0][0] * self.width)
+        right_eye_y = int(outputs[0][3][0][0] * self.height)
+        return (lef_eye_x, lef_eye_y), (right_eye_x, right_eye_y), \
+            self.extract_eye(self.frame, (lef_eye_x, lef_eye_y), self.width, self.height, "left eye"), \
+            self.extract_eye(self.frame, (right_eye_x, right_eye_y), self.width, self.height, "right eye")
