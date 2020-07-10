@@ -10,6 +10,7 @@ are used as inputs to the Gaze estimation model and the it's results (gaze) are 
 scrolling direction.
 
 ![Diagram](https://video.udacity-data.com/topher/2020/April/5e923081_pipeline/pipeline.png)
+(image by Udacity/Intel)
 
 ## Project Set Up and Installation
 ### Install the required Models from OpenVino Model Zoo
