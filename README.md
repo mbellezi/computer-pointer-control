@@ -48,11 +48,11 @@ The directory structure is the following:
 ```
 |- README.md                       - This file
 |- bin
-|---- demo.mp4                    - Sample video for testing the inference
+|---- demo.mp4                     - Sample video for testing the inference
 |- env
-|---- bin                         - virtual environment setup
+|---- bin                          - virtual environment setup
 |- models
-|---- intel                       - OpenVINO Zoo used Models
+|---- intel                        - OpenVINO Zoo used Models
 |- requirements.txt                - Python library required
 |- src
 |- facial_landmark_detection.py    - implementation of the facial landmark detection
@@ -79,6 +79,9 @@ optional arguments:
   --notmove             Should not move mouse
   -m MODEL, --model MODEL
                         Model precision to use. One of FP32, FP16 or FP16-INT8
+  -d DEVICE, --device DEVICE
+                        Device used to process model. One or CPU or GPU
+
 
 ```
 
@@ -89,6 +92,8 @@ The `--preview` option can be used to view the extracts od the face and eyes.
 The `--notmove` can be used to disable the mouse movement to get a better benchmark.
 
 The `--model` controls the precision of the models used. One of FP32, FP16 or FP16-INT8
+
+The `--device` controls the Intel hardware used for loading the models. Could be CPU, GPU or VPU if they are available. 
 
 
 ## Benchmarks
