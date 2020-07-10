@@ -158,61 +158,68 @@ class Application:
                 self.mc.move(gaze[0], gaze[1])
 
     def process_feed(self):
-        for batch in self.feed.next_batch():
-            self.frame = batch
-            if batch is not False:
-                if self.infer_frame() is False:
+        try:
+            for batch in self.feed.next_batch():
+                self.frame = batch
+                if batch is not False:
+                    if self.infer_frame() is False:
+                        break
+                else:
                     break
-            else:
-                break
 
-        log.info("Face detection model load time: {:.2f}ms".format(
-            1000 * self.face_detection_infer_time))
-        log.info("Facial landmark detection model load time: {:.2f}ms".format(
-            1000 * self.facial_landmark_detection_infer_time))
-        log.info("Head Pose estimation model load: {:.2f}ms".format(
-            1000 * self.head_pose_estimation_infer_time))
-        log.info("Gaze estimation model load time: {:.2f}ms".format(
-            1000 * self.gaze_estimation_infer_time))
+            log.info("Face detection model load time: {:.2f}ms".format(
+                1000 * self.face_detection_infer_time))
+            log.info("Facial landmark detection model load time: {:.2f}ms".format(
+                1000 * self.facial_landmark_detection_infer_time))
+            log.info("Head Pose estimation model load: {:.2f}ms".format(
+                1000 * self.head_pose_estimation_infer_time))
+            log.info("Gaze estimation model load time: {:.2f}ms".format(
+                1000 * self.gaze_estimation_infer_time))
 
-        log.info("Face detection model inference mean time: {:.2f}ms".format(
-            1000 * self.face_detection_infer_time / self.frames))
-        log.info("Facial landmark detection model inference mean time: {:.2f}ms".format(
-            1000 * self.facial_landmark_detection_infer_time / self.frames))
-        log.info("Head Pose estimation model inference mean time: {:.2f}ms".format(
-            1000 * self.head_pose_estimation_infer_time / self.frames))
-        log.info("Gaze estimation model inference mean time: {:.2f}ms".format(
-            1000 * self.gaze_estimation_infer_time / self.frames))
+            log.info("Face detection model inference mean time: {:.2f}ms".format(
+                1000 * self.face_detection_infer_time / self.frames))
+            log.info("Facial landmark detection model inference mean time: {:.2f}ms".format(
+                1000 * self.facial_landmark_detection_infer_time / self.frames))
+            log.info("Head Pose estimation model inference mean time: {:.2f}ms".format(
+                1000 * self.head_pose_estimation_infer_time / self.frames))
+            log.info("Gaze estimation model inference mean time: {:.2f}ms".format(
+                1000 * self.gaze_estimation_infer_time / self.frames))
+
+        except Exception as err:
+            log.error("Could not infer. Cause: ")
 
     def initialize_models(self):
-        model_precision = self.args.model.upper()
+        try:
+            model_precision = self.args.model.upper()
 
-        self.face_detection_model = Model_Face_Detection(
-            "models/intel/face-detection-adas-binary-0001/FP32-INT1/face-detection-adas-binary-0001")
-        start = time.time()
-        self.face_detection_model.load_model()
-        self.face_detection_load_time = time.time() - start
+            self.face_detection_model = Model_Face_Detection(
+                "models/intel/face-detection-adas-binary-0001/FP32-INT1/face-detection-adas-binary-0001")
+            start = time.time()
+            self.face_detection_model.load_model()
+            self.face_detection_load_time = time.time() - start
 
-        self.facial_landmark_detection_model = Model_Facial_Landmark_Detection(
-            f"models/intel/landmarks-regression-retail-0009/{model_precision}/landmarks-regression-retail-0009",
-            self.args.device.upper())
-        start = time.time()
-        self.facial_landmark_detection_model.load_model()
-        self.facial_landmark_detection_load_time = time.time() - start
+            self.facial_landmark_detection_model = Model_Facial_Landmark_Detection(
+                f"models/intel/landmarks-regression-retail-0009/{model_precision}/landmarks-regression-retail-0009",
+                self.args.device.upper())
+            start = time.time()
+            self.facial_landmark_detection_model.load_model()
+            self.facial_landmark_detection_load_time = time.time() - start
 
-        self.head_pose_estimation_model = Model_Head_Pose_estimation(
-            f"models/intel/head-pose-estimation-adas-0001/{model_precision}/head-pose-estimation-adas-0001",
-            self.args.device.upper())
-        start = time.time()
-        self.head_pose_estimation_model.load_model()
-        self.head_pose_estimation_load_time = time.time() - start
+            self.head_pose_estimation_model = Model_Head_Pose_estimation(
+                f"models/intel/head-pose-estimation-adas-0001/{model_precision}/head-pose-estimation-adas-0001",
+                self.args.device.upper())
+            start = time.time()
+            self.head_pose_estimation_model.load_model()
+            self.head_pose_estimation_load_time = time.time() - start
 
-        self.gaze_estimation_model = Model_Gaze_Estimation(
-            f"models/intel/gaze-estimation-adas-0002/{model_precision}/gaze-estimation-adas-0002",
-            self.args.device.upper())
-        start = time.time()
-        self.gaze_estimation_model.load_model()
-        self.gaze_estimation_load_time = time.time() - start
+            self.gaze_estimation_model = Model_Gaze_Estimation(
+                f"models/intel/gaze-estimation-adas-0002/{model_precision}/gaze-estimation-adas-0002",
+                self.args.device.upper())
+            start = time.time()
+            self.gaze_estimation_model.load_model()
+            self.gaze_estimation_load_time = time.time() - start
+        except Exception as err:
+            log.error("Could not load model. Cause: ")
 
     def run(self):
         self.initialize_logging()
