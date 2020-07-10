@@ -8,6 +8,7 @@ from gaze_estimation import Model_Gaze_Estimation
 from head_pose_estimation import Model_Head_Pose_estimation
 from mouse_controller import MouseController
 import logging as log
+import numpy as np
 
 
 class Application:
@@ -70,6 +71,7 @@ class Application:
             cv2.namedWindow('face')
             cv2.namedWindow('left eye')
             cv2.namedWindow('right eye')
+            cv2.namedWindow('gaze')
 
     def extract_face(self, box):
         margin_top = 0
@@ -142,6 +144,12 @@ class Application:
         start = time.time()
         gaze = self.gaze_estimation_model.predict(cropped_left_eye, cropped_right_eye, yaw, pitch, roll)
         self.gaze_estimation_infer_time += time.time() - start
+        if show:
+            img = np.zeros([100, 100, 3], dtype=np.uint8)
+            img.fill(255)
+            cv2.circle(img, (50, 50), 50, (0, 255, 0))
+            cv2.arrowedLine(img, (50, 50), (50 + int(gaze[0] * 70), 50 + int(-gaze[1] * 70)), (255, 0, 0), 2)
+            cv2.imshow('gaze', img)
         return gaze
 
     def infer_frame(self):

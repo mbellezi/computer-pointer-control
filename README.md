@@ -1,6 +1,15 @@
 # Computer Pointer Controller
 
-*TODO:* Write a short introduction to your project
+This project is a small prototype for testing the detection of the gaze direction of one person and use it to control
+the direction of the user's mouse pointer. This project uses the OpenVINO SDK and several models from the openVINO zoo
+to create a pipeline of inference. The first module used is the Face detection, that is used to extract the face image
+from the video feed. This face image as input to the Facial Landmark model that outputs the face landmark features as 
+the eyes positions. The eye's positions are use to extract both eyes from the image. The Head pose model is used to
+to detect the pose of the face's head. Later, both the eyes images and the pose information (yaw, tilt and roll angles)
+are used as inputs to the Gaze estimation model and the it's results (gaze) are used to control the mouse pointer
+scrolling direction.
+
+![Diagram](https://video.udacity-data.com/topher/2020/April/5e923081_pipeline/pipeline.png)
 
 ## Project Set Up and Installation
 ### Install the required Models from OpenVino Model Zoo
@@ -35,6 +44,26 @@ You can run the demo with the commands:
         python3 src/main.py -t video -i bin/demo.mp4 -p
 
 ## Documentation
+The directory structure is the following:
+```
+|- README.md                       - This file
+|- bin
+|---- demo.mp4                    - Sample video for testing the inference
+|- env
+|---- bin                         - virtual environment setup
+|- models
+|---- intel                       - OpenVINO Zoo used Models
+|- requirements.txt                - Python library required
+|- src
+|- facial_landmark_detection.py    - implementation of the facial landmark detection
+|- head_pose_estimation.py         - implementation of the pose estimation
+|- main.py                         - main application
+|- face_detection.py               - implementation of the face detection model
+|- gaze_estimation.py              - implementation of the gaze estimation model
+|- input_feeder.py                 - module for loading the video or camera feed
+|- mouse_controller.py             - module for controlling the mouse
+```
+
 The demo can use this command line options:
 ```
 usage: main.py [-h] -t INPUT_TYPE -i INPUT [-o OUT] [-p] [--notmove]
